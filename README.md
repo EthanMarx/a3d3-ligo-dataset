@@ -36,6 +36,7 @@ import numpy as np
 import h5py
 with h5py.File("dummy_submission.hdf5") as f:
     f.create_dataset("background", data=np.zeros((100_000)))
+    f.create_dataset("waveforms-35-20", data=np.ones((50_000)))
     f.create_dataset("waveforms-20-20", data=np.ones((50_000)))
     f.create_dataset("waveforms-20-10", data=np.ones((50_000)))
     f.create_dataset("waveforms-10-10", data=np.ones((50_000)))
@@ -44,12 +45,10 @@ with h5py.File("dummy_submission.hdf5") as f:
 ### A Note on Integrity
 This challenge is meant to facilitate a fair comparison of machine learning ideas. Note that it would not be difficult to train your algorithm using solely the provided challenge data, and achieve a high score. This algorithm would likely be "overfit" and unlikely to perform well when it comes time to analyze real graviational wave data. So, we kindly ask participants not to use the challenge data at all during the training process.
 
-
 ## Dataset Generation
 The dataset utilizes [`Aframe`](https://github.com/ml4gw/aframev2) for generating the segment of background strain and waveforms used to create
 the challenge dataset. In addition, we provide the script used to generate the dataset from these files.
 
 
-
-
-## Aframe Analysis
+## Aframe Submission
+We provide a submission from the `Aframe` algorithm as a benchmark score to beat. Details of the algorithm can be found on the arxiv: https://arxiv.org/abs/2403.18661. We hope to learn from submissions that outperform this score!
