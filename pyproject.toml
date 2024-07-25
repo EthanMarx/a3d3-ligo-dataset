@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "a3d3-ligo-dataset"
+version = "0.1.0"
+description = ""
+authors = ["Ethan Jacob Marx <ethan.marx@ligo.org>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+aframe = {path = "./aframev2", develop = true}
+priors = {path = "./aframev2/libs/priors", develop = true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
