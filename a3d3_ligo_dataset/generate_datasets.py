@@ -4,7 +4,10 @@ import h5py
 import numpy as np
 import torch
 
+from ledger.injections import IntrinsicWaveformSet
 from ml4gw import gw
+from torch.distributions.uniform import Uniform
+from ml4gw.distributions import Cosine
 
 seed = 101588
 rng = np.random.default_rng(seed)
@@ -15,7 +18,6 @@ def generate_background(
     kernel_length: float,
     num_samples: int,
     sample_rate: int,
-    output_file: str,
 ) -> np.array:
     with h5py.File(background_file, "r") as f:
         h1 = f["H1"][:]
@@ -33,10 +35,6 @@ def generate_background(
         background_samples[i, 0] = h1[h1_idx : h1_idx + kernel_size]
         background_samples[i, 1] = l1[l1_idx : l1_idx + kernel_size]
 
-    
-    with h5py.File(output_file, "w") as f:
-        f.create_dataset("data", data=background_samples)
-
     return background_samples
 
 
@@ -44,14 +42,21 @@ def generate_injections(
     waveform_file: str,
     background_file: str,
     sample_rate: float,
-    output_file: str,
+    kernel_length: float,
 ) -> None:
-    with h5py.File(waveform_file, "r") as f:
-        signals = torch.Tensor(f["signals"][:])
-        dec = torch.Tensor(f["dec"][:])
-        phi = torch.Tensor(f["ra"][:] - np.pi)
-        psi = torch.Tensor(f["psi"][:])
-        coalescence_idx = int(f.attrs["coalescence_time"] * sample_rate)
+
+
+    waveform_set = IntrinsicWaveformSet.read(waveform_file)
+    signals = torch.Tensor(waveform_set.get_waveforms())
+    coalescence_idx = int(waveform_set.coalescence_time * sample_rate)
+
+    dec = Cosine()
+    psi = Uniform(0, torch.pi)
+    phi = Uniform(-torch.pi, torch.pi)
+
+    dec = dec.sample((len(signals),))
+    psi = psi.sample((len(signals),))
+    phi = phi.sample((len(signals),))
 
     polarizations = {
         "cross": signals[:, 0],
@@ -73,8 +78,9 @@ def generate_injections(
 
     background_samples = generate_background(
         background_file,
-        num_samples=len(signals),
-        save_file=False,
+        kernel_length,
+        len(signals),
+        sample_rate,
     )
 
     # Place coalescence point of the signal at 10 seconds into the kernel
@@ -102,7 +108,6 @@ def generate_injections(
             constant_values=0,
         )
 
-    injection_dataset = background_samples + responses
+    injections = background_samples + responses
     
-    with h5py.File(output_file, "w") as f:
-        f.create_dataset("data", data=injection_dataset)
+    return injections

@@ -9,6 +9,7 @@ readme = "README.md"
 python = ">=3.9,<3.11"
 aframe = {path = "./aframev2", develop = true}
 priors = {path = "./aframev2/libs/priors", develop = true}
+ledger = {path = "./aframev2/libs/ledger", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
