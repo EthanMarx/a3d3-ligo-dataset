@@ -24,7 +24,6 @@ class Background(AframeDataTask):
     samples from timesliding strain
     """
     sample_rate = luigi.FloatParameter()
-    num_waveform_samples = luigi.IntParameter()
     num_background_samples = luigi.IntParameter()
     kernel_length = luigi.FloatParameter()
 
@@ -35,7 +34,7 @@ class Background(AframeDataTask):
             segments_file = config().data_dir / "background" / "segments.txt",
             condor_directory = config().condor_dir / "fetch",
         )
-    
+
     def output(self):
         return law.LocalFileTarget(config().data_dir / "background.hdf5")
 
@@ -45,11 +44,11 @@ class Background(AframeDataTask):
         background_file = list(self.input().collection.targets.values())[0].path
         background = generate_background(
             background_file,
-            self.kernel_length, 
+            self.kernel_length,
             self.num_background_samples,
             self.sample_rate,
         )
-       
+
         with h5py.File(self.output().path, "w") as f:
             f.create_dataset("data", data=background)
 
@@ -58,17 +57,17 @@ class Injections(AframeDataTask):
     prior = luigi.Parameter()
     sample_rate = luigi.FloatParameter()
     kernel_length = luigi.FloatParameter()
-    
+
     @property
     def default_image(self):
         return "data.sif"
-    
+
     def output(self):
         outputs = {}
         for (m1, m2) in self.mass_pairs:
             outputs[(m1, m2)] = law.LocalFileTarget(config().data_dir / f"./waveforms_{m1}_{m2}.hdf5")
         return outputs
-    
+
     def requires(self):
         reqs = {}
         reqs["background"] = Fetch.req(
@@ -83,7 +82,7 @@ class Injections(AframeDataTask):
                 self,
                 condor_directory = config().condor_dir / f"waveforms_{m1}_{m2}",
                 output_dir = config().data_dir / f"waveforms_{m1}_{m2}",
-                prior=self.prior, 
+                prior=self.prior,
                 prior_args=prior_args
             )
         return reqs
@@ -107,13 +106,13 @@ class Injections(AframeDataTask):
             with h5py.File(output_file, "w") as f:
                 f.create_dataset("data", data=injections)
 
-            
+
 @inherits(Background, Injections)
 class A3D3Dataset(AframeWrapperTask):
     def requires(self):
         yield Background.req(self)
         yield Injections.req(self)
 
-            
+
 
 
