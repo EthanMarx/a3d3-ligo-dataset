@@ -6,6 +6,7 @@ import torch
 
 from ledger.injections import IntrinsicWaveformSet
 from ml4gw import gw
+from gwpy.timeseries import TimeSeriesDict
 from torch.distributions.uniform import Uniform
 from ml4gw.distributions import Cosine
 
@@ -83,6 +84,17 @@ def generate_injections(
         sample_rate,
     )
 
+    psd_background = TimeSeriesDict.read(background_file, path=ifos)
+    waveform_duration = responses.shape[-1] // sample_rate
+    df = 1 / waveform_duration
+    psds = []
+    for ifo in ifos:
+        psd = psd_background[ifo].psd(1 / df, window="hann", method="median")
+        psds.append(psd.value)
+    psds = torch.tensor(np.stack(psds), dtype=torch.float64)
+
+    snrs = gw.compute_network_snr(responses, psds, sample_rate, highpass=32)
+
     # Place coalescence point of the signal at 10 seconds into the kernel
     signal_time = 10
     signal_idx = int(signal_time * sample_rate)
@@ -110,4 +122,4 @@ def generate_injections(
 
     injections = background_samples + responses
     
-    return injections
+    return injections, snrs
