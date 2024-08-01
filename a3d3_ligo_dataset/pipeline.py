@@ -97,7 +97,7 @@ class Injections(AframeDataTask):
         for (m1, m2) in self.mass_pairs:
             waveform_file = list(self.input()[(m1, m2)].collection.targets.values())[0].path
             output_file = self.output()[(m1, m2)].path
-            injections = generate_injections(
+            injections, snrs = generate_injections(
                 waveform_file,
                 background_file,
                 self.sample_rate,
@@ -106,6 +106,7 @@ class Injections(AframeDataTask):
 
             with h5py.File(output_file, "w") as f:
                 f.create_dataset("data", data=injections)
+                f.create_dataset("snrs", data=snrs)
 
 
 @inherits(Background, Injections)

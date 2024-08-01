@@ -25,7 +25,9 @@ hanford = first_sample[0]
 livingston = first_sample[1]
 ```
 
-Every sample in each of the files is sampled at 2048 Hz. Besides for downsampling from 16KHz to 2KHz we do not do any pre-processing. For the waveform files, the coalescence time of the merger is placed 0.5 seconds away from the right edge. 
+Every sample in each of the files is sampled at 2048 Hz. Besides for downsampling from 16KHz to 2KHz we do not do any pre-processing. For the waveform files, the coalescence time of the merger is placed 0.5 seconds away from the right edge.
+
+Additionally, each of the waveform files has a dataset named `snrs` that contains the network SNR of each waveform relative to the PSD of the full background file. The SNRs are used as part of the performance evaluation of a model, and should not be used as inputs when testing.
 
 ## Analyzing the Dataset
 To make a submission, you must assign a scalar "detection statistic" to each sample. The larger the detection statistic, the more likely
