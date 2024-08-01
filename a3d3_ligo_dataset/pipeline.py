@@ -54,6 +54,7 @@ class Background(AframeDataTask):
 
 class Injections(AframeDataTask):
     mass_pairs = luigi.ListParameter()
+    zmax = luigi.FloatParameter()
     prior = luigi.Parameter()
     sample_rate = luigi.FloatParameter()
     kernel_length = luigi.FloatParameter()
@@ -77,7 +78,7 @@ class Injections(AframeDataTask):
             condor_directory = config().condor_dir / "fetch",
         )
         for (m1, m2) in self.mass_pairs:
-            prior_args = {"mass_1": m1, "mass_2": m2}
+            prior_args = {"mass_1": m1, "mass_2": m2, "zmax": self.zmax}
             reqs[(m1, m2)] = TrainingWaveforms.req(
                 self,
                 condor_directory = config().condor_dir / f"waveforms_{m1}_{m2}",
