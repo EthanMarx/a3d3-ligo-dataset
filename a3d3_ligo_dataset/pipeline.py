@@ -21,11 +21,13 @@ class config(luigi.Config):
 class Background(AframeDataTask):
     """
     Fetch background strain and generate kernels of background
-    samples from timesliding strain
+    samples of length `kernel_length` from timesliding the strain
     """
     sample_rate = luigi.FloatParameter()
     num_background_samples = luigi.IntParameter()
-    kernel_length = luigi.FloatParameter()
+    kernel_length = luigi.FloatParameter(
+        description="Length in seconds of background samples"
+    )
 
     def requires(self):
         return Fetch.req(
@@ -53,11 +55,19 @@ class Background(AframeDataTask):
             f.create_dataset("data", data=background)
 
 class Injections(AframeDataTask):
+    """
+    Generate raw h+/hx waveforms using aframe `TrainingWaveforms`
+    task. Then, generate injections by projecting these waveforms
+    onto interferometers and adding them into random background samples
+    """
     mass_pairs = luigi.ListParameter()
     zmax = luigi.FloatParameter()
     prior = luigi.Parameter()
     sample_rate = luigi.FloatParameter()
     kernel_length = luigi.FloatParameter()
+    signal_right_pad = luigi.FloatParameter(
+        description="Time in seconds from right edge of kernel where coalescence time will be placed"
+    )
 
     @property
     def default_image(self):
@@ -102,6 +112,7 @@ class Injections(AframeDataTask):
                 background_file,
                 self.sample_rate,
                 self.kernel_length,
+                self.signal_right_pad,
             )
 
             with h5py.File(output_file, "w") as f:
