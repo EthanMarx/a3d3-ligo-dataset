@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 import torch
 
-from ledger.injections import IntrinsicWaveformSet
+from ledger.injections import WaveformPolarizationSet
 from ml4gw import gw
 from gwpy.timeseries import TimeSeriesDict
 from torch.distributions.uniform import Uniform
@@ -44,10 +44,11 @@ def generate_injections(
     background_file: str,
     sample_rate: float,
     kernel_length: float,
+    signal_right_pad: float, # time in seconds from right edge where coalescence occurs
 ) -> None:
 
 
-    waveform_set = IntrinsicWaveformSet.read(waveform_file)
+    waveform_set = WaveformPolarizationSet.read(waveform_file)
     signals = torch.Tensor(waveform_set.get_waveforms())
     coalescence_idx = int(waveform_set.coalescence_time * sample_rate)
 
@@ -84,6 +85,7 @@ def generate_injections(
         sample_rate,
     )
 
+    # use global psd to estimate SNRs
     psd_background = TimeSeriesDict.read(background_file, path=ifos)
     waveform_duration = responses.shape[-1] // sample_rate
     df = 1 / waveform_duration
@@ -95,8 +97,8 @@ def generate_injections(
 
     snrs = gw.compute_network_snr(responses, psds, sample_rate, highpass=32)
 
-    # Place coalescence point of the signal at 10 seconds into the kernel
-    signal_time = 10
+    # calculate idx where coalescence time is placed
+    signal_time = kernel_length - signal_right_pad
     signal_idx = int(signal_time * sample_rate)
 
     # Crop and/or pad responses to match the length of the background samples

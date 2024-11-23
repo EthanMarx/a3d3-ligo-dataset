@@ -10,6 +10,8 @@ python = ">=3.9,<3.11"
 aframe = {path = "./aframev2", develop = true}
 priors = {path = "./aframev2/libs/priors", develop = true}
 ledger = {path = "./aframev2/libs/ledger", develop = true}
+jupyter = "^1.1.1"
+torchmetrics = "^1.4.3"
 
 [build-system]
 requires = ["poetry-core"]
